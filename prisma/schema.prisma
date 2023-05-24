@@ -18,9 +18,9 @@ model User {
   email          String @unique
   hashedPassword String
 
-  nickname String?
+  username String?
 
-  bookmarks Waterintake[]
+  waterintakes Waterintake[]
 
   @@map("users")
 }

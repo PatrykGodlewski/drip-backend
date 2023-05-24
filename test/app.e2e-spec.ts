@@ -1,4 +1,4 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import * as pactum from 'pactum';
 import { AppModule } from 'src/app.module';
@@ -44,7 +44,7 @@ describe('first app e2e', () => {
           .spec()
           .post('/auth/signup')
           .withBody(body)
-          .expectStatus(201)
+          .expectStatus(HttpStatus.CREATED)
           .expectJsonLike({ access_token: /.+/ });
       });
       it('should throw error without email', async () => {
@@ -55,24 +55,24 @@ describe('first app e2e', () => {
         return pactum.spec().post('/auth/signup').withBody(body).expectStatus(400);
       });
       it('should throw error without password', async () => {
-        const body: AuthDto = {
+        const body = {
           email: 'test@test.com',
           password: '',
-        };
+        } satisfies AuthDto;
         return pactum.spec().post('/auth/signup').withBody(body).expectStatus(400);
       });
     });
     describe('signin', () => {
       it('should signip a user', async () => {
-        const body: AuthDto = {
+        const body = {
           email: 'test@test.com',
           password: 'password',
-        };
+        } satisfies AuthDto;
         return pactum
           .spec()
           .post('/auth/signin')
           .withBody(body)
-          .expectStatus(200)
+          .expectStatus(HttpStatus.OK)
           .expectJsonLike({ access_token: /.+/ })
           .stores('token', 'access_token');
       });
@@ -88,18 +88,18 @@ describe('first app e2e', () => {
     describe('edit', () => {
       it('should edit user username', async () => {
         const body = {
-          nickname: 'testPactum',
+          username: 'testPactum',
         } satisfies EditUserDto;
         return pactum
           .spec()
           .patch('/users/me')
           .withBody(body)
           .withBearerToken('$S{token}')
-          .expectBodyContains(body.nickname);
+          .expectBodyContains(body.username);
       });
       it('should edit user email and username', async () => {
         const body = {
-          nickname: 'testPactum',
+          username: 'testPactum',
           email: 'test2@test2.test',
         } satisfies EditUserDto;
         return pactum
@@ -107,9 +107,9 @@ describe('first app e2e', () => {
           .patch('/users/me')
           .withBody(body)
           .withBearerToken('$S{token}')
-          .expectBodyContains(body.nickname)
+          .expectBodyContains(body.username)
           .expectBodyContains(body.email)
-          .expectStatus(200);
+          .expectStatus(HttpStatus.OK);
       });
       it('should throw body validation error', async () => {
         const body = {
@@ -128,5 +128,72 @@ describe('first app e2e', () => {
     });
   });
 
-  it.todo('should pass');
+  describe('waterintake', () => {
+    describe('save waterintake', () => {
+      it('should save waterintake', async () => {
+        const body = {
+          amount: 100,
+        };
+        return pactum
+          .spec()
+          .post('/waterintakes')
+          .withBody(body)
+          .withBearerToken('$S{token}')
+          .expectStatus(HttpStatus.CREATED);
+      });
+      it('should throw decimal number', async () => {
+        const body = {
+          amount: 10.1,
+        };
+        return pactum
+          .spec()
+          .post('/waterintakes')
+          .withBody(body)
+          .withBearerToken('$S{token}')
+          .expectStatus(HttpStatus.BAD_REQUEST);
+      });
+      it('should throw on negative number', async () => {
+        const body = {
+          amount: -10,
+        };
+        return pactum
+          .spec()
+          .post('/waterintakes')
+          .withBody(body)
+          .withBearerToken('$S{token}')
+          .expectStatus(HttpStatus.BAD_REQUEST);
+      });
+    });
+  });
+  describe('Show all waterintakes', () => {
+    it('should show all waterintakes of currently logged in user', async () => {
+      const body = {
+        amount: 200,
+      };
+      pactum
+        .spec()
+        .post('/waterintakes')
+        .withBody(body)
+        .withBearerToken('$S{token}')
+        .expectStatus(HttpStatus.CREATED)
+        .toss();
+      return pactum
+        .spec()
+        .get('/waterintakes')
+        .withBearerToken('$S{token}')
+        .expectStatus(HttpStatus.OK)
+        .stores('waterintake', '[0].id')
+        .inspect();
+    });
+  });
+
+  describe('Delete waterintakes', () => {
+    it('should delete waterintake for current user', () => {
+      return pactum
+        .spec()
+        .delete('/waterintakes/$S{waterintake}')
+        .withBearerToken('$S{token}')
+        .expectStatus(HttpStatus.NO_CONTENT);
+    });
+  });
 });
