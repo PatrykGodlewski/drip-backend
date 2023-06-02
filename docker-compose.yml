@@ -1,5 +1,35 @@
 version: '3.8'
 services:
+  # dev-backend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   ports:
+  #     - 3333:3333
+  #   environment:
+  #     # - NODE_ENV=development
+  #     - PORT=3333
+  #     - JWT_SECRET=secret
+  #     # - DATABASE_HOST=dev-db
+  #     # - DATABASE_PORT=5432
+  #     # - DATABASE_USERNAME=root
+  #     # - DATABASE_PASSWORD=1234
+  #     # - DATABASE_NAME=nest
+  #     - DATABASE_URL="postgresql://root:1234@localhost:5432/nest?schema=public"
+  #   depends_on:
+  #     - dev-db
+  #   networks:
+  #     - drip-net
+  dev-mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 8025:8025 # MailHog web interface
+      - 1025:1025 # MailHog SMTP server
+    networks:
+      - drip-net
   dev-db:
     image: postgres:13
     ports:

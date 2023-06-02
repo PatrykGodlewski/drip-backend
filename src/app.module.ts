@@ -13,6 +13,7 @@ import { WaterintakeModule } from './waterintake/waterintake.module';
     PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true,
+      
     }),
   ],
   controllers: [],

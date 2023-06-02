@@ -15,12 +15,14 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email          String @unique
+  email          String  @unique
   hashedPassword String
+  isVerified     Boolean @default(false)
 
   username String?
 
-  waterintakes Waterintake[]
+  waterintakes         Waterintake[]
+  reset_password_codes ResetPasswordCode[]
 
   @@map("users")
 }
@@ -36,4 +38,17 @@ model Waterintake {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("waterintakes")
+}
+
+model ResetPasswordCode {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  code String @unique
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reset_password_codes")
 }
